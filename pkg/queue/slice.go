@@ -5,25 +5,25 @@ import (
 	"sync"
 )
 
-type ArrayMutexQueue[T any] struct {
+type SliceQueue[T any] struct {
 	queue []T
 	m *sync.Mutex
 }
 
-func NewArrayMutexQueue[T any]() *ArrayMutexQueue[T] {
-	return &ArrayMutexQueue[T]{
+func NewSliceQueue[T any]() *SliceQueue[T] {
+	return &SliceQueue[T]{
 		queue: make([]T, 0),
 		m: &sync.Mutex{},
 	}
 }
 
-func (q *ArrayMutexQueue[T]) Enqueue(element T) {
+func (q *SliceQueue[T]) Enqueue(element T) {
 	q.m.Lock()
 	defer q.m.Unlock()
 	q.queue = append(q.queue, element)
 }
 
-func (q *ArrayMutexQueue[T]) Dequeue() (T, error) {
+func (q *SliceQueue[T]) Dequeue() (T, error) {
 	q.m.Lock()
 	defer q.m.Unlock()
 
@@ -38,7 +38,7 @@ func (q *ArrayMutexQueue[T]) Dequeue() (T, error) {
 	return element, nil
 }
 
-func (q *ArrayMutexQueue[T]) Size() int {
+func (q *SliceQueue[T]) Size() int {
 	q.m.Lock()
 	defer q.m.Unlock()
 	return len(q.queue)
