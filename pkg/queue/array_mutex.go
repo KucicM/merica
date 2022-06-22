@@ -10,8 +10,8 @@ type ArrayMutexQueue[T any] struct {
 	m *sync.Mutex
 }
 
-func NewArrayMutexQueue[T any]() ArrayMutexQueue[T] {
-	return ArrayMutexQueue[T]{
+func NewArrayMutexQueue[T any]() *ArrayMutexQueue[T] {
+	return &ArrayMutexQueue[T]{
 		queue: make([]T, 0),
 		m: &sync.Mutex{},
 	}
@@ -23,7 +23,7 @@ func (q *ArrayMutexQueue[T]) Enqueue(element T) {
 	q.queue = append(q.queue, element)
 }
 
-func (q *ArrayMutexQueue[T])Dequeue() (T, error) {
+func (q *ArrayMutexQueue[T]) Dequeue() (T, error) {
 	q.m.Lock()
 	defer q.m.Unlock()
 
