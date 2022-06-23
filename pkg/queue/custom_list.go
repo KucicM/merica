@@ -14,7 +14,8 @@ type node[T any] struct {
 }
 
 func NewCustomListQueue[T any]() *CustomListQueue[T] {
-	return &CustomListQueue[T]{nil, nil, &sync.Mutex{}}
+	h := &node[T]{}
+	return &CustomListQueue[T]{h, h, &sync.Mutex{}}
 }
 
 func (q *CustomListQueue[T]) Enqueue(element T) {
@@ -22,13 +23,6 @@ func (q *CustomListQueue[T]) Enqueue(element T) {
 	defer q.m.Unlock()
 
 	n := &node[T]{element, nil}
-
-	if q.rear == nil {
-		q.rear = n
-		q.front = n
-		return
-	}
-
 	q.rear.next = n
 	q.rear = n
 }
@@ -38,16 +32,13 @@ func (q *CustomListQueue[T]) Dequeue() (T, bool) {
 	defer q.m.Unlock()
 
 	var element T
-	if q.front == nil {
+	if q.front.next == nil {
 		return element, false
 	}
 
-	element = q.front.val
-	q.front = q.front.next // GC will clean memeroy
 
-	if q.front == nil {
-		q.rear = nil
-	}
+	element = q.front.next.val
+	q.front = q.front.next // GC will clean memeroy
 
 	return element, true
 }

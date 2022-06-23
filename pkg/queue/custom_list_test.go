@@ -8,7 +8,7 @@ import (
 	"github.com/KucicM/merica/pkg/queue"
 )
 
-func TestList2Basic(t *testing.T) {
+func TestCustumListBasic(t *testing.T) {
 	q := queue.NewCustomListQueue[int]()
 	err := QueueBasicTest(q)
 	if err != nil {
@@ -16,7 +16,7 @@ func TestList2Basic(t *testing.T) {
 	}
 }
 
-func TestList2RandomOps(t *testing.T) {
+func TestCustomListRandomOps(t *testing.T) {
 	q := queue.NewCustomListQueue[int]()
 	err := QueueRandomOpsTest(q)
 	if err != nil {
@@ -24,7 +24,7 @@ func TestList2RandomOps(t *testing.T) {
 	}
 }
 
-func TestList2SingleConcurreny(t *testing.T) {
+func TestCustomListSingleConcurreny(t *testing.T) {
 	q := queue.NewCustomListQueue[int]()
 	err := QueueConcurrentReadWriteTest(q)
 	if err != nil {
@@ -32,7 +32,7 @@ func TestList2SingleConcurreny(t *testing.T) {
 	}
 }
 
-func TestList2Concurreny(t *testing.T) {
+func TestCustomListConcurreny(t *testing.T) {
 	q := queue.NewCustomListQueue[int]()
 	err := QueueConcurrentReadsWritesTest(q)
 	if err != nil {
@@ -40,7 +40,7 @@ func TestList2Concurreny(t *testing.T) {
 	}
 }
 
-func BenchmarkList2SingleThread(b *testing.B) {
+func BenchmarkCustomListSingleThread(b *testing.B) {
 	for n := 10; n < 100_000_000; n *= 10 {
 		b.Run(fmt.Sprintf("batch_size_%d", n), func (b *testing.B)  {
 			q := queue.NewCustomListQueue[int]()
