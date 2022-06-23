@@ -4,7 +4,7 @@ import "sync"
 
 type CustomListQueue[T any] struct {
 	front *node[T]
-	rear *node[T]
+	back *node[T]
 	m *sync.Mutex
 }
 
@@ -23,8 +23,8 @@ func (q *CustomListQueue[T]) Enqueue(element T) {
 	defer q.m.Unlock()
 
 	n := &node[T]{element, nil}
-	q.rear.next = n
-	q.rear = n
+	q.back.next = n
+	q.back = n
 }
 
 func (q *CustomListQueue[T]) Dequeue() (T, bool) {
