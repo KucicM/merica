@@ -30,27 +30,27 @@ func QueueBasicTest(q queue.Queue[int]) error {
 		return fmt.Errorf("Queue not size 3 but %d", size)
 	}
 
-	val, err := q.Dequeue()
-	if err != nil {
-		return err
+	val, ok := q.Dequeue()
+	if !ok {
+		return fmt.Errorf("No value")
 	}
 
 	if val != 3 {
 		return fmt.Errorf("Expected 3 got %d", val)
 	}
 
-	val, err = q.Dequeue()
-	if err != nil {
-		return err
+	val, ok = q.Dequeue()
+	if !ok {
+		return fmt.Errorf("No value")
 	}
 
 	if val != 1 {
 		return fmt.Errorf("Expected 1 got %d", val)
 	}
 
-	val, err = q.Dequeue()
-	if err != nil {
-		return err
+	val, ok = q.Dequeue()
+	if !ok {
+		return fmt.Errorf("No value")
 	}
 
 	if val != 2 {
@@ -62,9 +62,9 @@ func QueueBasicTest(q queue.Queue[int]) error {
 		return fmt.Errorf("Expected empty queue got size %d", size)
 	}
 
-	_, err = q.Dequeue()
-	if err == nil {
-		return fmt.Errorf("Expected error got nil")
+	val, ok = q.Dequeue()
+	if ok {
+		return fmt.Errorf("Expected no value got %d", val)
 	}
 
 	return nil
@@ -88,15 +88,15 @@ func QueueRandomOpsTest(q queue.Queue[int]) error {
 			queueSize++
 			q.Enqueue(lastEque)
 		case 2:
-			val, err := q.Dequeue()
-			if queueSize == 0 && err == nil {
-				return fmt.Errorf("expected error on empty queue get val %v", val)
+			val, ok := q.Dequeue()
+			if queueSize == 0 && ok {
+				return fmt.Errorf("Expected empty queue got val %v", val)
 			}
 
 			if queueSize != 0 {
 				lastDeque++
 				if val != lastDeque {
-					return fmt.Errorf("Expected to fet %d got %d", lastDeque, val)
+					return fmt.Errorf("Expected to get %d got %d", lastDeque, val)
 				}
 				queueSize--
 			}
@@ -128,34 +128,34 @@ func QueueConcurrentReadWriteTest(q queue.Queue[int]) error {
 		q.Size() 
 	}()
 
-	var readErr error
+	var err error
 	readWg := sync.WaitGroup{}
 	readWg.Add(1)
 
 	go func() {
 		defer readWg.Done()
 		nextExpected := 0
-		var err error
+		ok := true
 		var element int
-		for  err == nil || atomic.LoadInt32(&writeDone) == 0 {
-			element, err = q.Dequeue()
-			if err == nil {
+		for  ok || atomic.LoadInt32(&writeDone) == 0 {
+			element, ok = q.Dequeue()
+			if ok {
 				if element != nextExpected {
-					readErr = fmt.Errorf("Order not ok, expected %d got %d", nextExpected, element)
+					err = fmt.Errorf("Order not ok, expected %d got %d", nextExpected, element)
 					return
 				}
 				nextExpected++
 			}
 		}
 		if nextExpected != testSize {
-			readErr = fmt.Errorf("Expected Enqueue count to be %d but it was %d", testSize, nextExpected)
+			err = fmt.Errorf("Expected Enqueue count to be %d but it was %d", testSize, nextExpected)
 		}
 	}()
 
 	writeWg.Wait()
 	readWg.Wait()
 
-	return readErr
+	return err
 }
 
 // multiple writers and readers
@@ -203,11 +203,10 @@ func QueueConcurrentReadsWritesTest(q queue.Queue[int]) error {
 			defer readWg.Done()
 			res := make([]int, 0)
 
-			var err error
+			ok := true
 			var element int
-			for  err == nil || atomic.LoadInt32(&writeDone) == 0 {
-				element, err = q.Dequeue()
-				if err == nil {
+			for  ok || atomic.LoadInt32(&writeDone) == 0 {
+				if element, ok = q.Dequeue(); ok {
 					res = append(res, element)
 				}
 			}

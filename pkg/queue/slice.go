@@ -1,7 +1,6 @@
 package queue
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -23,19 +22,19 @@ func (q *SliceQueue[T]) Enqueue(element T) {
 	q.queue = append(q.queue, element)
 }
 
-func (q *SliceQueue[T]) Dequeue() (T, error) {
+func (q *SliceQueue[T]) Dequeue() (T, bool) {
 	q.m.Lock()
 	defer q.m.Unlock()
 
 	var element T
 	if len(q.queue) <= 0 {
-		return element, fmt.Errorf("Queue is empty")
+		return element, false
 	}
 
 	element = q.queue[0]
 	q.queue = q.queue[1:]
 
-	return element, nil
+	return element, true
 }
 
 func (q *SliceQueue[T]) Size() int {

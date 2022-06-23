@@ -2,6 +2,6 @@ package queue
 
 type Queue[T any] interface {
 	Enqueue(T)
-	Dequeue() (T, error)
+	Dequeue() (T, bool)
 	Size() int
 }

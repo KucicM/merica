@@ -2,7 +2,6 @@ package queue
 
 import (
 	"container/list"
-	"fmt"
 	"sync"
 )
 
@@ -24,20 +23,20 @@ func (q *ListQueue[T]) Enqueue(element T) {
 	q.queue.PushBack(element)
 }
 
-func (q *ListQueue[T]) Dequeue() (T, error) {
+func (q *ListQueue[T]) Dequeue() (T, bool) {
 	q.m.Lock()
 	defer q.m.Unlock()
 
 	var element T
 	if q.queue.Len() <= 0 {
-		return element, fmt.Errorf("Queue is empty")
+		return element, false
 	}
 
 	e := q.queue.Front()
 	element = e.Value.(T)
 	q.queue.Remove(e)
 
-	return element, nil
+	return element, true
 }
 
 func (q *ListQueue[T]) Size() int {
