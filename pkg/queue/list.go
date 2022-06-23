@@ -38,9 +38,3 @@ func (q *ListQueue[T]) Dequeue() (T, bool) {
 
 	return element, true
 }
-
-func (q *ListQueue[T]) Size() int {
-	q.m.Lock()
-	defer q.m.Unlock()
-	return q.queue.Len()
-}

@@ -13,22 +13,8 @@ import (
 func QueueBasicTest(q queue.Queue[int]) error {
 
 	q.Enqueue(3)
-	size := q.Size()
-	if size != 1 {
-		return fmt.Errorf("Queue not size 1 but %d", size)
-	}
-
 	q.Enqueue(1)
-	size = q.Size()
-	if size != 2 {
-		return fmt.Errorf("Queue not size 2 but %d", size)
-	}
-
 	q.Enqueue(2)
-	size = q.Size()
-	if size != 3 {
-		return fmt.Errorf("Queue not size 3 but %d", size)
-	}
 
 	val, ok := q.Dequeue()
 	if !ok {
@@ -57,11 +43,6 @@ func QueueBasicTest(q queue.Queue[int]) error {
 		return fmt.Errorf("Expected 2 got %d", val)
 	}
 
-	size = q.Size()
-	if size != 0 {
-		return fmt.Errorf("Expected empty queue got size %d", size)
-	}
-
 	val, ok = q.Dequeue()
 	if ok {
 		return fmt.Errorf("Expected no value got %d", val)
@@ -77,17 +58,12 @@ func QueueRandomOpsTest(q queue.Queue[int]) error {
 	lastEque := -1
 
 	for i := 0; i < testSize; i++ {
-		switch rand.Intn(3) {
-		case 0: 
-			size := q.Size()
-			if size != queueSize {
-				return fmt.Errorf("Expected size of %d got size %d", queueSize, size)
-			}
-		case 1:
+		switch rand.Intn(2) {
+		case 0:
 			lastEque++
 			queueSize++
 			q.Enqueue(lastEque)
-		case 2:
+		case 1:
 			val, ok := q.Dequeue()
 			if queueSize == 0 && ok {
 				return fmt.Errorf("Expected empty queue got val %v", val)
@@ -121,11 +97,6 @@ func QueueConcurrentReadWriteTest(q queue.Queue[int]) error {
 			q.Enqueue(i)
 		}
 		atomic.AddInt32(&writeDone, 1)
-	}()
-
-	go func() {
-		// just to cover race check
-		q.Size() 
 	}()
 
 	var err error
@@ -184,12 +155,6 @@ func QueueConcurrentReadsWritesTest(q queue.Queue[int]) error {
 		writeWg.Wait()
 		atomic.AddInt32(&writeDone, 1)
 	}()
-
-	for i := 0; i < 10; i++ {
-		go func() {
-			q.Size()
-		}()
-	}
 
 	recivedElements := make([]bool, testSize)
 	lock := sync.Mutex{}

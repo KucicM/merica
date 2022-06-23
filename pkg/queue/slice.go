@@ -36,9 +36,3 @@ func (q *SliceQueue[T]) Dequeue() (T, bool) {
 
 	return element, true
 }
-
-func (q *SliceQueue[T]) Size() int {
-	q.m.Lock()
-	defer q.m.Unlock()
-	return len(q.queue)
-}

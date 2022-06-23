@@ -58,12 +58,6 @@ func (q *RingQueue[T]) Dequeue() (T, bool) {
 	return element, true
 }
 
-func (q *RingQueue[T]) Size() int {
-	q.m.Lock()
-	defer q.m.Unlock()
-	return q.size
-}
-
 func (q *RingQueue[T]) resize() {
 		newRingBuffer := make([]T, q.size<<1)
 

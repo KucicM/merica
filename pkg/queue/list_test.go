@@ -45,12 +45,10 @@ func BenchmarkListSingleThread(b *testing.B) {
 		b.Run(fmt.Sprintf("batch_size_%d", n), func (b *testing.B)  {
 			q := queue.NewListQueue[int]()
 			for i := 0; i < b.N; i++ {
-				q.Size()
 				q.Enqueue(i)
 			}
 
 			for i := 0; i < b.N; i++ {
-				q.Size()
 				q.Dequeue()
 			}
 		})
