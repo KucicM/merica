@@ -192,30 +192,3 @@ func QueueConcurrentReadsWritesTest(q Queue[int]) error {
 
 	return nil
 }
-
-func NEnqueueNDequeue(q Queue[int], n int) {
-	for i := 0; i < n; i++ {
-		q.Enqueue(i)
-	}
-
-	for i := 0; i < n; i++ {
-		q.Dequeue()
-	}
-}
-
-func EnqueueDequeueNTimes(q Queue[int], n int) {
-	for i := 0; i < n; i++ {
-		q.Enqueue(i)
-		q.Dequeue()
-	}
-}
-
-func RandomEnqueueDequeue(q Queue[int], n int) {
-	for i := 0; i < n; i++ {
-		if rand.Float32() < 0.5 {
-			q.Enqueue(i)
-		} else {
-			q.Dequeue()
-		}
-	}
-}
