@@ -1,4 +1,4 @@
-package queue
+package lockfree
 
 import (
 	"sync/atomic"
@@ -6,30 +6,30 @@ import (
 )
 
 
-type LockFreeQueue[T any] struct {
+type LinkedListQueue[T any] struct {
 	front unsafe.Pointer
 	back unsafe.Pointer
 }
 
-type lockFreeNode[T any] struct {
+type node[T any] struct {
 	val T
 	next unsafe.Pointer
 }
 
-func NewLockFreeQueue[T any]() *LockFreeQueue[T] {
-	n := unsafe.Pointer(new(lockFreeNode[T]))
-	return &LockFreeQueue[T]{n, n}
+func NewLinkedListQueue[T any]() *LinkedListQueue[T] {
+	n := unsafe.Pointer(new(node[T]))
+	return &LinkedListQueue[T]{n, n}
 }
 
-func (q *LockFreeQueue[T]) Enqueue(element T) {
-	new_node := unsafe.Pointer(&lockFreeNode[T]{element, nil})
+func (q *LinkedListQueue[T]) Enqueue(element T) {
+	new_node := unsafe.Pointer(&node[T]{element, nil})
 	var old_back unsafe.Pointer
 
 	// when compare and swap succedes in one thread all other threads are blocked until 
 	// the back is updated
 	for {
 		old_back = atomic.LoadPointer(&q.back)
-		if atomic.CompareAndSwapPointer(&(*lockFreeNode[T])(old_back).next, nil, new_node) {
+		if atomic.CompareAndSwapPointer(&(*node[T])(old_back).next, nil, new_node) {
 			break
 		}
 	}
@@ -37,11 +37,11 @@ func (q *LockFreeQueue[T]) Enqueue(element T) {
 }
 
 
-func (q *LockFreeQueue[T]) Dequeue() (T, bool) {
+func (q *LinkedListQueue[T]) Dequeue() (T, bool) {
 	var old_front, next unsafe.Pointer
 	for {
 		old_front = atomic.LoadPointer(&q.front)
-		next = atomic.LoadPointer(&((*lockFreeNode[T])(old_front).next))
+		next = atomic.LoadPointer(&((*node[T])(old_front).next))
 		if next == nil || atomic.CompareAndSwapPointer(&q.front, old_front, next) {
 			break
 		}
@@ -50,7 +50,7 @@ func (q *LockFreeQueue[T]) Dequeue() (T, bool) {
 	var e T
 	var ok bool
 	if next != nil {
-		e = (*lockFreeNode[T])(next).val
+		e = (*node[T])(next).val
 		ok = true
 	}
 	return e, ok

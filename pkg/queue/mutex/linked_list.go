@@ -1,8 +1,8 @@
-package queue
+package mutex
 
 import "sync"
 
-type CustomListQueue[T any] struct {
+type LinkedListQueue[T any] struct {
 	front *node[T]
 	back *node[T]
 	m *sync.Mutex
@@ -13,12 +13,12 @@ type node[T any] struct {
 	next *node[T]
 }
 
-func NewCustomListQueue[T any]() *CustomListQueue[T] {
+func NewLinkedListQueue[T any]() *LinkedListQueue[T] {
 	h := &node[T]{}
-	return &CustomListQueue[T]{h, h, &sync.Mutex{}}
+	return &LinkedListQueue[T]{h, h, &sync.Mutex{}}
 }
 
-func (q *CustomListQueue[T]) Enqueue(element T) {
+func (q *LinkedListQueue[T]) Enqueue(element T) {
 	q.m.Lock()
 	defer q.m.Unlock()
 
@@ -27,7 +27,7 @@ func (q *CustomListQueue[T]) Enqueue(element T) {
 	q.back = n
 }
 
-func (q *CustomListQueue[T]) Dequeue() (T, bool) {
+func (q *LinkedListQueue[T]) Dequeue() (T, bool) {
 	q.m.Lock()
 	defer q.m.Unlock()
 

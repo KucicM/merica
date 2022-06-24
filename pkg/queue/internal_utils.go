@@ -1,16 +1,15 @@
-package queue_test
+// utils for tests
+package queue
 
 import (
 	"fmt"
 	"math/rand"
 	"sync"
 	"sync/atomic"
-
-	"github.com/KucicM/merica/pkg/queue"
 )
 
 
-func QueueBasicTest(q queue.Queue[int]) error {
+func QueueBasicTest(q Queue[int]) error {
 
 	q.Enqueue(3)
 	q.Enqueue(1)
@@ -18,40 +17,40 @@ func QueueBasicTest(q queue.Queue[int]) error {
 
 	val, ok := q.Dequeue()
 	if !ok {
-		return fmt.Errorf("No value")
+		return fmt.Errorf("no value")
 	}
 
 	if val != 3 {
-		return fmt.Errorf("Expected 3 got %d", val)
+		return fmt.Errorf("expected 3 got %d", val)
 	}
 
 	val, ok = q.Dequeue()
 	if !ok {
-		return fmt.Errorf("No value")
+		return fmt.Errorf("no value")
 	}
 
 	if val != 1 {
-		return fmt.Errorf("Expected 1 got %d", val)
+		return fmt.Errorf("expected 1 got %d", val)
 	}
 
 	val, ok = q.Dequeue()
 	if !ok {
-		return fmt.Errorf("No value")
+		return fmt.Errorf("no value")
 	}
 
 	if val != 2 {
-		return fmt.Errorf("Expected 2 got %d", val)
+		return fmt.Errorf("expected 2 got %d", val)
 	}
 
 	val, ok = q.Dequeue()
 	if ok {
-		return fmt.Errorf("Expected no value got %d", val)
+		return fmt.Errorf("expected no value got %d", val)
 	}
 
 	return nil
 }
 
-func QueueRandomOpsTest(q queue.Queue[int]) error {
+func QueueRandomOpsTest(q Queue[int]) error {
 	testSize := 100_000
 	queueSize := 0
 	lastDeque := -1
@@ -66,13 +65,13 @@ func QueueRandomOpsTest(q queue.Queue[int]) error {
 		case 1:
 			val, ok := q.Dequeue()
 			if queueSize == 0 && ok {
-				return fmt.Errorf("Expected empty queue got val %v", val)
+				return fmt.Errorf("expected empty queue got val %v", val)
 			}
 
 			if queueSize != 0 {
 				lastDeque++
 				if val != lastDeque {
-					return fmt.Errorf("Expected to get %d got %d", lastDeque, val)
+					return fmt.Errorf("expected to get %d got %d", lastDeque, val)
 				}
 				queueSize--
 			}
@@ -84,8 +83,8 @@ func QueueRandomOpsTest(q queue.Queue[int]) error {
 
 // single writer and single reader
 // tests order as well
-func QueueConcurrentReadWriteTest(q queue.Queue[int]) error {
-	testSize := 100_000
+func QueueConcurrentReadWriteTest(q Queue[int]) error {
+	testSize := 500_000
 
 	writeWg := sync.WaitGroup{}
 	writeWg.Add(1)
@@ -112,14 +111,14 @@ func QueueConcurrentReadWriteTest(q queue.Queue[int]) error {
 			element, ok = q.Dequeue()
 			if ok {
 				if element != nextExpected {
-					err = fmt.Errorf("Order not ok, expected %d got %d", nextExpected, element)
+					err = fmt.Errorf("order not ok, expected %d got %d", nextExpected, element)
 					return
 				}
 				nextExpected++
 			}
 		}
 		if nextExpected != testSize {
-			err = fmt.Errorf("Expected Enqueue count to be %d but it was %d", testSize, nextExpected)
+			err = fmt.Errorf("expected Enqueue count to be %d but it was %d", testSize, nextExpected)
 		}
 	}()
 
@@ -131,10 +130,10 @@ func QueueConcurrentReadWriteTest(q queue.Queue[int]) error {
 
 // multiple writers and readers
 // does not test order
-func QueueConcurrentReadsWritesTest(q queue.Queue[int]) error {
-	testSize := 100_000
+func QueueConcurrentReadsWritesTest(q Queue[int]) error {
+	testSize := 500_000
 
-	numberOfWriters := 10
+	numberOfWriters := 50
 	writeWg := sync.WaitGroup{}
 
 	for i := 0; i < numberOfWriters; i++ {
@@ -161,7 +160,7 @@ func QueueConcurrentReadsWritesTest(q queue.Queue[int]) error {
 
 
 	readWg := sync.WaitGroup{}
-	numberOfReaders := 10
+	numberOfReaders := 50
 	for i := 0; i < numberOfReaders; i++ {
 		readWg.Add(1)
 		go func() {
@@ -187,9 +186,36 @@ func QueueConcurrentReadsWritesTest(q queue.Queue[int]) error {
 	readWg.Wait()
 	for i, v := range recivedElements {
 		if !v {
-			return fmt.Errorf("Did not recive value %d", i)
+			return fmt.Errorf("did not recive value %d", i)
 		}
 	}
 
 	return nil
+}
+
+func NEnqueueNDequeue(q Queue[int], n int) {
+	for i := 0; i < n; i++ {
+		q.Enqueue(i)
+	}
+
+	for i := 0; i < n; i++ {
+		q.Dequeue()
+	}
+}
+
+func EnqueueDequeueNTimes(q Queue[int], n int) {
+	for i := 0; i < n; i++ {
+		q.Enqueue(i)
+		q.Dequeue()
+	}
+}
+
+func RandomEnqueueDequeue(q Queue[int], n int) {
+	for i := 0; i < n; i++ {
+		if rand.Float32() < 0.5 {
+			q.Enqueue(i)
+		} else {
+			q.Dequeue()
+		}
+	}
 }
