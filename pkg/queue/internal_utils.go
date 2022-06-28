@@ -195,7 +195,7 @@ func QueueConcurrentReadsWritesTest(q Queue[int]) error {
 }
 
 
-var maxReadersWriters int = 32
+var maxReadersWriters int = 1 << 16
 type BenchmarkTable struct {
 	NumOfWriters int
 	NumOfReaders int
