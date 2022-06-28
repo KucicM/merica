@@ -2,10 +2,14 @@
 package queue
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"sync"
 	"sync/atomic"
+	"testing"
+
+	"golang.org/x/sync/semaphore"
 )
 
 
@@ -191,4 +195,82 @@ func QueueConcurrentReadsWritesTest(q Queue[int]) error {
 	}
 
 	return nil
+}
+
+
+var maxReadersWriters int = 64
+type BenchmarkTable = struct {
+	NumOfWriters int
+	NumOfReaders int
+}
+
+func GetBenchmarkTable() []BenchmarkTable {
+	var ret []BenchmarkTable
+	for numOfWriters := 1; numOfWriters <= maxReadersWriters; numOfWriters = numOfWriters << 1 {
+		for numOfReaders := 1; numOfReaders <= maxReadersWriters; numOfReaders = numOfReaders << 1 {
+			ret = append(ret, BenchmarkTable{numOfWriters, numOfReaders})
+		}
+	}
+	return ret
+}
+
+func BenchmarkQueueSequential(b *testing.B, q Queue[int], numOfWriters, numOfReaders int) {
+	wg := &sync.WaitGroup{}
+	ctx := context.TODO()
+	writeSemaphore := semaphore.NewWeighted(int64(numOfWriters))
+	for i := 0; i < b.N; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			writeSemaphore.Acquire(ctx, 1)
+			q.Enqueue(1)
+			writeSemaphore.Release(1)
+		}()
+	}
+
+	wg.Wait()
+
+	readSemaphore := semaphore.NewWeighted(int64(numOfReaders))
+	for i := 0; i < b.N; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			readSemaphore.Acquire(ctx, 1)
+			q.Dequeue()
+			readSemaphore.Release(1)
+		}()
+	}
+
+	wg.Wait()
+}
+
+func BenchmarkQueueParallel(b *testing.B, q Queue[int], numOfWriters, numOfReaders int) {
+	writeWg := &sync.WaitGroup{}
+	ctx := context.TODO()
+
+	writeSemaphore := semaphore.NewWeighted(int64(numOfWriters))
+	for i := 0; i < b.N; i++ {
+		writeWg.Add(1)
+		go func() {
+			writeSemaphore.Acquire(ctx, 1)
+			q.Enqueue(1)
+			writeSemaphore.Release(1)
+			writeWg.Done()
+		}()
+	}
+
+	readWg := &sync.WaitGroup{}
+	readSemaphore := semaphore.NewWeighted(int64(numOfReaders))
+	for i := 0; i < b.N; i++ {
+		readWg.Add(1)
+		go func() {
+			readSemaphore.Acquire(ctx, 1)
+			q.Dequeue()
+			readSemaphore.Release(1)
+			readWg.Done()
+		}()
+	}
+
+	writeWg.Wait()
+	readWg.Wait()
 }
