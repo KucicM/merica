@@ -1,4 +1,5 @@
-package lockfree
+
+package mutex
 
 import (
 	"testing"
@@ -7,8 +8,8 @@ import (
 )
 
 
-func BenchmarkLockFreeLinkedListSequential(b *testing.B) {
-	q := NewLinkedListQueue[int]()
+func BenchmarkMutexListSequential(b *testing.B) {
+	q := NewListQueue[int]()
 	for _, c := range queue.GetBenchmarkTable() {
 		b.Run(c.Name(), func(b *testing.B) {
 			queue.BenchmarkQueueSequential(b, q, c.NumOfWriters, c.NumOfReaders)
@@ -16,8 +17,8 @@ func BenchmarkLockFreeLinkedListSequential(b *testing.B) {
 	}
 }
 
-func BenchmarkLockFreeLinkedListParallel(b *testing.B) {
-	q := NewLinkedListQueue[int]()
+func BenchmarkMutexListParallel(b *testing.B) {
+	q := NewSliceQueue[int]()
 	for _, c := range queue.GetBenchmarkTable() {
 		b.Run(c.Name(), func(b *testing.B) {
 			queue.BenchmarkQueueParallel(b, q, c.NumOfWriters, c.NumOfReaders)

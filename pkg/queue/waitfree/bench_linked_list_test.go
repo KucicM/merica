@@ -1,4 +1,4 @@
-package lockfree
+package waitfree
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 )
 
 
-func BenchmarkLockFreeLinkedListSequential(b *testing.B) {
+func BenchmarkWaitFreeLinkedListSequential(b *testing.B) {
 	q := NewLinkedListQueue[int]()
 	for _, c := range queue.GetBenchmarkTable() {
 		b.Run(c.Name(), func(b *testing.B) {
@@ -16,7 +16,7 @@ func BenchmarkLockFreeLinkedListSequential(b *testing.B) {
 	}
 }
 
-func BenchmarkLockFreeLinkedListParallel(b *testing.B) {
+func BenchmarkWaitFreeLinkedListParallel(b *testing.B) {
 	q := NewLinkedListQueue[int]()
 	for _, c := range queue.GetBenchmarkTable() {
 		b.Run(c.Name(), func(b *testing.B) {

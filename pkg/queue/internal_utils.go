@@ -121,9 +121,6 @@ func QueueConcurrentReadWriteTest(q Queue[int]) error {
 				nextExpected++
 			}
 		}
-		if nextExpected != testSize {
-			err = fmt.Errorf("expected Enqueue count to be %d but it was %d", testSize, nextExpected)
-		}
 	}()
 
 	writeWg.Wait()
@@ -198,10 +195,14 @@ func QueueConcurrentReadsWritesTest(q Queue[int]) error {
 }
 
 
-var maxReadersWriters int = 64
-type BenchmarkTable = struct {
+var maxReadersWriters int = 32
+type BenchmarkTable struct {
 	NumOfWriters int
 	NumOfReaders int
+}
+
+func (b BenchmarkTable) Name() string {
+	return fmt.Sprintf("Writers:%d_Readers:%d", b.NumOfReaders, b.NumOfWriters)
 }
 
 func GetBenchmarkTable() []BenchmarkTable {
