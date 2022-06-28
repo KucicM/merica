@@ -131,7 +131,7 @@ func QueueConcurrentReadWriteTest(q Queue[int]) error {
 // multiple writers and readers
 // does not test order
 func QueueConcurrentReadsWritesTest(q Queue[int]) error {
-	testSize := 500_000
+	testSize := 100_000
 
 	numberOfWriters := 50
 	writeWg := sync.WaitGroup{}
