@@ -1,11 +1,16 @@
 package mutex
 
-import "sync"
+import (
+	"sync"
+	"sync/atomic"
+	"unsafe"
+)
 
 type LinkedListQueue[T any] struct {
 	front *node[T]
 	back *node[T]
-	m *sync.Mutex
+	frontLock *sync.Mutex
+	backLock *sync.Mutex
 }
 
 type node[T any] struct {
@@ -13,26 +18,38 @@ type node[T any] struct {
 	next *node[T]
 }
 
+// without this, go detects race because initial state 
+// back and front have same next... 
+func (n *node[T]) atomicLoadNext() *node[T] {
+	return (*node[T])(atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&n.next))))
+}
+
+// same...
+func (n *node[T]) atomicStoreNext(node *node[T]) {
+	addr := (*unsafe.Pointer)(unsafe.Pointer(&n.next))
+	atomic.StorePointer(addr, unsafe.Pointer(node))
+}
+
 func NewLinkedListQueue[T any]() *LinkedListQueue[T] {
 	h := &node[T]{}
-	return &LinkedListQueue[T]{h, h, &sync.Mutex{}}
+	return &LinkedListQueue[T]{h, h, &sync.Mutex{}, &sync.Mutex{}}
 }
 
 func (q *LinkedListQueue[T]) Enqueue(element T) {
-	q.m.Lock()
-	defer q.m.Unlock()
+	q.backLock.Lock()
+	defer q.backLock.Unlock()
 
 	n := &node[T]{element, nil}
-	q.back.next = n
+	q.back.atomicStoreNext(n)
 	q.back = n
 }
 
 func (q *LinkedListQueue[T]) Dequeue() (T, bool) {
-	q.m.Lock()
-	defer q.m.Unlock()
+	q.frontLock.Lock()
+	defer q.frontLock.Unlock()
 
 	var element T
-	if q.front.next == nil {
+	if q.front.atomicLoadNext() == nil {
 		return element, false
 	}
 
